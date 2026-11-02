@@ -205,7 +205,14 @@ function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
 
 const S={config:null, marcas:{}, pesos:{}, gustos:{}, me:null, view:'camino', judgeDay:null, db:null, offline:false, readOnly:false, scrolled:false};
 
-function cfg(){const c=Object.assign({},DEFAULT,S.config||{});c.reglas=(c.reglas||[]).filter(Boolean);c.days=Number(c.days)||30;return c}
+function normDate(v){
+  if(v==null||v==='') return null;
+  const s=String(v).trim();
+  let m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/); if(m) return m[1]+'-'+pad(m[2])+'-'+pad(m[3]);
+  m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/); if(m) return m[3]+'-'+pad(m[2])+'-'+pad(m[1]); // dd/mm/aaaa
+  const d=new Date(s); return isNaN(d)?null:ymd(d);
+}
+function cfg(){const c=Object.assign({},DEFAULT,S.config||{});c.start=normDate(c.start)||DEFAULT.start;c.reglas=(Array.isArray(c.reglas)?c.reglas:String(c.reglas||'').split('\n')).map(x=>String(x).trim()).filter(Boolean);c.days=Number(c.days)||30;return c}
 function other(p){return p==='hannah'?'carlo':'hannah'}
 function dateOf(n){return addDays(cfg().start,n-1)}
 function curDay(){return diffDays(cfg().start,today())+1}
