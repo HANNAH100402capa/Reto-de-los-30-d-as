@@ -1,0 +1,556 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Reto 30 Días · Hannah y Carlo</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='46' fill='%23e04877'/%3E%3Ctext x='50' y='66' font-size='46' text-anchor='middle' fill='white' font-family='Arial' font-weight='bold'%3E30%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@400;600;700;800&display=swap">
+<style>
+html{-webkit-text-size-adjust:100%}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+[hidden]{display:none!important}
+body{margin:0}
+/* Layout: app de una columna para celular. Pantalla principal = camino de niveles en zigzag (día 1 arriba → día 30 abajo). Pestañas fijas abajo. Cada página toma el color de su dueño. */
+:root{
+  --bg:#eaf0f8; --surface:#ffffff; --ink:#1b2233; --muted:#5f6b80; --line:#d3dbe8;
+  --hannah:#e04877; --hannah-soft:#fde2eb; --carlo:#2d6fd8; --carlo-soft:#dbe7fb;
+  --gift:#e89a12; --ok:#1f9e56; --no:#de3b35; --no-soft:#fbe0de; --lock:#c4ccda;
+  --display:"Lilita One", "Arial Rounded MT Bold", system-ui, sans-serif;
+  --body:"Nunito", "Segoe UI", system-ui, sans-serif;
+  --me:var(--hannah); --me-soft:var(--hannah-soft);
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#121722; --surface:#1c2230; --ink:#e9edf5; --muted:#98a3b8; --line:#2e3647;
+  --hannah:#ff7aa2; --hannah-soft:#3d2131; --carlo:#71a2ff; --carlo-soft:#1d2a47;
+  --gift:#f2b13a; --ok:#45c97d; --no:#ff6a61; --no-soft:#3d2020; --lock:#3a4356; color-scheme:dark } }
+:root[data-theme="dark"]{
+  --bg:#121722; --surface:#1c2230; --ink:#e9edf5; --muted:#98a3b8; --line:#2e3647;
+  --hannah:#ff7aa2; --hannah-soft:#3d2131; --carlo:#71a2ff; --carlo-soft:#1d2a47;
+  --gift:#f2b13a; --ok:#45c97d; --no:#ff6a61; --no-soft:#3d2020; --lock:#3a4356; color-scheme:dark }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.45;
+  padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));
+  padding-block:0 100px}
+body.p-hannah{--me:var(--hannah);--me-soft:var(--hannah-soft);--ot:var(--carlo);--ot-soft:var(--carlo-soft)}
+body.p-carlo{--me:var(--carlo);--me-soft:var(--carlo-soft);--ot:var(--hannah);--ot-soft:var(--hannah-soft)}
+.wrap{max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:16px;padding-top:16px}
+h1,h2,h3{font-family:var(--display);font-weight:400;margin:0;text-wrap:balance;letter-spacing:.01em}
+h2{font-size:24px} h3{font-size:20px}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:3px solid var(--me);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.label{font-size:12px;text-transform:uppercase;letter-spacing:.08em;font-weight:800;color:var(--muted)}
+.hint{font-size:14px;color:var(--muted);margin:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:20px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.warn{background:var(--no-soft);color:var(--no);border-radius:14px;padding:10px 14px;font-size:14px;font-weight:700}
+
+/* elegir persona */
+.choose{display:flex;flex-direction:column;gap:14px;padding-top:8vh;text-align:center}
+.choose h1{font-size:40px}
+.choose .big{border:0;border-radius:22px;padding:22px;font-family:var(--display);font-size:30px;color:#fff;box-shadow:0 6px 0 rgba(0,0,0,.18)}
+.choose .big:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.18)}
+
+/* cabecera */
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.top h1{font-size:30px;line-height:1;color:var(--me)}
+.top .sw{border:1.5px solid var(--line);background:var(--surface);border-radius:99px;padding:6px 12px;font-size:13px;font-weight:700;color:var(--muted)}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px 8px;text-align:center;display:flex;flex-direction:column;gap:0;min-width:0}
+.stat b{font-family:var(--display);font-weight:400;font-size:28px;line-height:1.1}
+.stat span{font-size:12px;font-weight:700;color:var(--muted)}
+.stat.ok b{color:var(--ok)} .stat.no b{color:var(--no)}
+.castigo{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--me-soft);border-radius:16px;padding:12px 14px}
+.castigo b{font-family:var(--display);font-weight:400;font-size:22px;color:var(--me);white-space:nowrap}
+
+/* camino de niveles */
+.map{position:relative;margin-inline:auto;width:100%;max-width:340px}
+.map svg.path{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none}
+.map svg.path polyline{fill:none;stroke:var(--line);stroke-width:6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:2 12}
+.map svg.path polyline.done{stroke:var(--me);stroke-dasharray:none;opacity:.35}
+.lvl{position:absolute;transform:translate(-50%,-50%);width:66px;height:66px;border-radius:50%;border:0;padding:0;
+  display:grid;place-items:center;font-family:var(--display);font-size:24px;color:#fff;background:var(--lock);box-shadow:0 5px 0 rgba(0,0,0,.16)}
+.lvl:active{transform:translate(-50%,calc(-50% + 3px));box-shadow:0 2px 0 rgba(0,0,0,.16)}
+.lvl.ok{background:var(--ok)} .lvl.no{background:var(--no)}
+.lvl.espera{background:var(--surface);color:var(--muted);border:3px dashed var(--lock);box-shadow:none}
+.lvl.hoy{background:var(--me);box-shadow:0 5px 0 rgba(0,0,0,.18),0 0 0 6px var(--me-soft)}
+.lvl.lock{color:color-mix(in srgb,var(--ink) 35%,transparent);box-shadow:none}
+.lvl.boss{width:80px;height:80px;font-size:28px}
+.lvl .badge{position:absolute;right:-4px;top:-4px;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;background:var(--surface);border:2px solid var(--bg);color:var(--ink)}
+.lvl .badge svg{width:15px;height:15px}
+.lvl.ok .badge{color:var(--ok)} .lvl.no .badge{color:var(--no)}
+.lvl .tag{position:absolute;top:calc(100% + 8px);left:50%;transform:translateX(-50%);font-family:var(--body);font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;color:var(--muted)}
+.lvl.hoy .tag{color:var(--me)}
+.lvl .badge.gift{background:var(--gift);color:#fff;width:30px;height:30px}
+.gift-card{display:flex;align-items:center;gap:12px;background:var(--surface);border:1.5px solid var(--gift);border-radius:16px;padding:12px 14px}
+.gift-card .gi{flex:none;width:40px;height:40px;border-radius:12px;background:var(--gift);color:#fff;display:grid;place-items:center}
+.gift-card .gi svg{width:24px;height:24px}
+.gift-card .gt{flex:1;min-width:0;display:flex;flex-direction:column}
+.gift-card .gt .hint{font-size:13px}
+.gift-card button{flex:none;border:0;background:var(--gift);color:#fff;border-radius:12px;padding:8px 12px;font-weight:800}
+@keyframes pulse{0%,100%{box-shadow:0 5px 0 rgba(0,0,0,.18),0 0 0 6px var(--me-soft)}50%{box-shadow:0 5px 0 rgba(0,0,0,.18),0 0 0 12px var(--me-soft)}}
+.lvl.hoy{animation:pulse 2s ease-in-out infinite}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:var(--muted);justify-content:center}
+.legend span{display:flex;align-items:center;gap:6px}
+.legend i{width:14px;height:14px;border-radius:50%;display:inline-block}
+
+/* marcar al otro */
+.judge{border:2px solid var(--ot);background:var(--surface)}
+.judge h2{color:var(--ot)}
+.daynav{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.daynav button{width:42px;height:42px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);font-size:22px;font-weight:800}
+.daynav button:disabled{opacity:.3;cursor:default}
+.daynav .t{text-align:center}
+.daynav .t b{display:block;font-family:var(--display);font-weight:400;font-size:22px}
+.rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:2px;font-size:15px}
+.verdict{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.verdict button{border:2.5px solid var(--line);background:var(--surface);border-radius:18px;padding:14px 8px;font-family:var(--display);font-size:20px;display:flex;flex-direction:column;align-items:center;gap:4px}
+.verdict button svg{width:34px;height:34px}
+.verdict .yes{color:var(--ok)} .verdict .no{color:var(--no)}
+.verdict .yes[aria-pressed="true"]{background:var(--ok);border-color:var(--ok);color:#fff}
+.verdict .no[aria-pressed="true"]{background:var(--no);border-color:var(--no);color:#fff}
+.verdict button:disabled{opacity:.45;cursor:default}
+.pend{display:flex;flex-wrap:wrap;gap:6px}
+.pend button{border:1.5px dashed var(--ot);color:var(--ot);background:none;border-radius:99px;padding:4px 12px;font-weight:800;font-size:13px}
+textarea,input,select{font:inherit;color:var(--ink);background:var(--bg);border:1.5px solid var(--line);border-radius:12px;padding:10px 12px;width:100%;min-width:0}
+textarea{min-height:70px;resize:vertical}
+
+/* detalle de nivel */
+.sheet-bg{position:fixed;inset:0;background:rgba(10,14,25,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheet{width:100%;max-width:480px;background:var(--surface);border-radius:24px 24px 0 0;
+  padding:20px max(20px, env(safe-area-inset-right, 0px)) calc(24px + env(safe-area-inset-bottom, 0px)) max(20px, env(safe-area-inset-left, 0px));display:flex;flex-direction:column;gap:12px}
+.sheet .close{align-self:stretch;border:0;background:var(--bg);border-radius:14px;padding:12px;font-weight:800}
+.big-st{display:flex;align-items:center;gap:12px;font-family:var(--display);font-size:22px}
+.big-st i{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;color:#fff;flex:none}
+.big-st i svg{width:24px;height:24px}
+.quote{background:var(--bg);border-radius:12px;padding:10px 12px;font-size:15px}
+
+/* pesaje */
+.wgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.wcol{border-radius:18px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.wcol.hannah{background:var(--hannah-soft)} .wcol.carlo{background:var(--carlo-soft)}
+.wcol h3.hannah{color:var(--hannah)} .wcol h3.carlo{color:var(--carlo)}
+.wcol label{font-size:12px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.wcol .diff{font-family:var(--display);font-size:26px;line-height:1.1}
+.wcol .ro{font-family:var(--display);font-size:22px}
+.diff.down{color:var(--ok)} .diff.up{color:var(--no)}
+
+/* ajustes */
+form{display:flex;flex-direction:column;gap:14px}
+.f{display:flex;flex-direction:column;gap:6px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.primary{border:0;background:var(--me);color:#fff;border-radius:16px;padding:14px;font-family:var(--display);font-size:20px;box-shadow:0 4px 0 rgba(0,0,0,.18)}
+
+/* pestañas */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);z-index:5;
+  padding:6px max(16px, env(safe-area-inset-right, 0px)) calc(6px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px))}
+nav.tabs .in{max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+nav.tabs button{border:0;background:none;border-radius:12px;padding:7px 2px;font-size:12px;font-weight:800;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0}
+nav.tabs button svg{width:24px;height:24px}
+nav.tabs button[aria-current="page"]{color:var(--me);background:var(--me-soft)}
+nav.tabs button .dotn{position:relative}
+nav.tabs button .dotn b{position:absolute;top:-4px;right:-10px;background:var(--no);color:#fff;font-size:10px;border-radius:99px;padding:0 5px;line-height:16px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom, 0px));background:var(--ink);color:var(--bg);padding:9px 18px;border-radius:99px;font-weight:800;font-size:14px;z-index:30;white-space:nowrap}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap" id="app"><p class="hint">Cargando el reto…</p></div>
+<nav class="tabs" id="tabsnav" aria-label="Secciones" hidden><div class="in" id="tabs"></div></nav>
+<div id="sheet"></div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>
+/* =====================================================================
+   PEGA AQUÍ la URL de tu Apps Script (la que termina en /exec).
+   Mientras diga PEGA_AQUI, la página funciona en modo de prueba
+   y solo guarda en el aparato donde la abras.
+   ===================================================================== */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyZDxfi3CkGiqggR1jLw6EScR81KODPwUzhOJ1Qw6n9diYs17AGz-LrEwzYqXkOlfk/exec";
+
+(function(){
+const P = {hannah:'Hannah', carlo:'Carlo'};
+const DEFAULT = {
+  start:'2026-11-02', days:30,
+  reglas:['Comer saludable (nada de chatarra)','Hacer ejercicio','Tomar 2 litros de agua','Dormir bien','Cero gaseosas ni dulces'],
+  castigoTipo:'definir', castigoMonto:10, castigoMoneda:'S/'
+};
+const I = {
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><rect x="5" y="11" width="14" height="10" rx="2.5"/><path d="M8 11V8a4 4 0 018 0v3"/></svg>',
+  scale:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="4"/><path d="M8.5 10a5 5 0 017 0L12 13"/></svg>',
+  map:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H15a3 3 0 000-6H9a3 3 0 010-6h6.5"/></svg>',
+  gift:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="9" width="17" height="11.5" rx="2"/><path d="M2.5 9h19M12 9v11.5M12 9c-1.5-4-6-4.5-6-2s3.5 2 6 2c2.5 0 6 .5 6-2s-4.5-2-6 2z"/></svg>',
+  heart:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z"/></svg>',
+  gear:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>',
+  trophy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 4h8v6a4 4 0 01-8 0zM8 6H5a3 3 0 003 4M16 6h3a3 3 0 01-3 4M12 14v4M8 20h8"/></svg>'
+};
+
+function pad(n){return String(n).padStart(2,'0')}
+function ymd(d){return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+function parse(s){const [y,m,d]=String(s).split('-').map(Number);return new Date(y,m-1,d)}
+function addDays(s,n){const d=parse(s);d.setDate(d.getDate()+n);return ymd(d)}
+function diffDays(a,b){return Math.round((parse(b)-parse(a))/86400000)}
+function today(){return ymd(new Date())}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+const MESES=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+const DSEM=['domingo','lunes','martes','miércoles','jueves','viernes','sábado'];
+function nice(s){const d=parse(s);return DSEM[d.getDay()]+' '+d.getDate()+' '+MESES[d.getMonth()]}
+function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+
+const S={config:null, marcas:{}, pesos:{}, gustos:{}, me:null, view:'camino', judgeDay:null, db:null, offline:false, readOnly:false, scrolled:false};
+
+function cfg(){const c=Object.assign({},DEFAULT,S.config||{});c.reglas=(c.reglas||[]).filter(Boolean);c.days=Number(c.days)||30;return c}
+function other(p){return p==='hannah'?'carlo':'hannah'}
+function dateOf(n){return addDays(cfg().start,n-1)}
+function curDay(){return diffDays(cfg().start,today())+1}
+// Cada día no cumplido agrega un día extra al reto de esa persona (los días extra también pueden fallar).
+function daysFor(p){let N=cfg().days;for(let n=1;n<=N&&N<200;n++){const m=mark(p,n);if(m&&m.status==='no')N++}return N}
+function lastJudgeable(p){return Math.min(daysFor(p),curDay())}
+// Gustitos: cada 7 días cumplidos seguidos se gana uno.
+function gustitoDays(p){const out=[];let run=0;const N=daysFor(p);for(let n=1;n<=N;n++){const m=mark(p,n);if(m&&m.status==='ok'){run++;if(run%7===0)out.push(n)}else run=0}return out}
+function gustitos(p){const ganados=gustitoDays(p).length;const usados=Math.min(ganados,Number((S.gustos[p]||{}).usados)||0);return {ganados,usados,disp:ganados-usados}}
+function mark(p,n){return S.marcas[dateOf(n)+'_'+p]||null}
+function status(p,n){
+  const m=mark(p,n);
+  if(m&&m.status==='ok') return 'ok';
+  if(m&&m.status==='no') return 'no';
+  const c=curDay();
+  if(n>c) return 'lock';
+  if(n===c) return 'hoy';
+  return 'espera';
+}
+function stats(p){
+  const N=daysFor(p); let ok=0,no=0;
+  for(let n=1;n<=N;n++){const s=status(p,n); if(s==='ok')ok++; else if(s==='no')no++;}
+  // racha: días cumplidos seguidos hasta el último día ya marcado (hoy sin marcar no la rompe)
+  let cur=0, n=Math.min(N,curDay());
+  if(n>=1&&!mark(p,n)) n--;
+  for(;n>=1&&status(p,n)==='ok';n--) cur++;
+  return {ok,no,racha:cur};
+}
+function pendientes(p){const out=[];for(let n=1;n<lastJudgeable(p);n++){if(!mark(p,n))out.push(n)}return out}
+
+/* ---------- vistas ---------- */
+const app=document.getElementById('app');
+function header(){
+  return `<div class="top"><div><div class="label num">Reto de ${daysFor(S.me)} días</div><h1>${P[S.me]}</h1></div>
+    <button class="sw" data-switch>No soy ${P[S.me]}</button></div>
+    ${S.offline?'<div class="warn">No se pudo conectar con la hoja de Google. Revisa tu internet; se vuelve a intentar sola.</div>':''}
+    ${S.localOnly?'<div class="warn">Modo de prueba: falta pegar la URL del Apps Script, así que lo que marques solo se guarda en este aparato.</div>':''}`;
+}
+function levelMap(p){
+  const c=cfg(), N=daysFor(p), ROW=96, xs=[50,74,82,70,46,24,16,30];
+  const gifts=gustitoDays(p);
+  const pts=[]; let html='';
+  for(let n=1;n<=N;n++){
+    const x=xs[(n-1)%xs.length], y=50+(n-1)*ROW; pts.push([x,y]);
+    const st=status(p,n), boss=n===N, gift=gifts.includes(n), extra=n>c.days;
+    let badge='';
+    if(gift) badge=`<span class="badge gift">${I.gift}</span>`;
+    else if(st==='ok') badge=`<span class="badge">${I.check}</span>`;
+    else if(st==='no') badge=`<span class="badge">${I.x}</span>`;
+    else if(n===1||n===N) badge=`<span class="badge" style="color:var(--me)">${n===N?I.trophy:I.scale}</span>`;
+    const tag = st==='hoy'?'Hoy':(n===1?'Pesaje':(n===N?'Final · pesaje':(gift?'¡Gustito!':(extra?'Día extra':''))));
+    const inner = st==='lock'?I.lock.replace('<svg','<svg width="24" height="24"'):n;
+    html+=`<button class="lvl ${st}${boss?' boss':''}" style="left:${x}%;top:${y}px" data-lvl="${n}" data-who="${p}" aria-label="Día ${n}: ${({ok:'cumplido',no:'no cumplido',hoy:'hoy',espera:'falta marcar',lock:'bloqueado'})[st]}">${inner}${badge}${tag?`<span class="tag">${tag}</span>`:''}</button>`;
+  }
+  const H=50+(N-1)*ROW+70;
+  const doneTo=Math.max(0,Math.min(N,curDay()));
+  const poly=a=>a.map(([x,y])=>x+','+y).join(' ');
+  return `<div class="map" style="height:${H}px">
+    <svg class="path" viewBox="0 0 100 ${H}" preserveAspectRatio="none"><polyline points="${poly(pts)}" vector-effect="non-scaling-stroke"/>${doneTo>1?`<polyline class="done" points="${poly(pts.slice(0,doneTo))}" vector-effect="non-scaling-stroke"/>`:''}</svg>
+    ${html}</div>`;
+}
+function statsBlock(p){
+  const s=stats(p);
+  return `<div class="stats"><div class="stat ok"><b class="num">${s.ok}</b><span>Cumplidos</span></div>
+    <div class="stat no"><b class="num">${s.no}</b><span>Fallados</span></div>
+    <div class="stat"><b class="num">${s.racha}</b><span>Racha</span></div></div>
+    <div class="castigo"><span><span class="label">Días del reto</span><br><span class="hint num">${cfg().days} + ${s.no} extra por fallas</span></span><b class="num">${daysFor(p)} días</b></div>
+    ${giftBlock(p)}`;
+}
+function giftBlock(p){
+  const g=gustitos(p), s=stats(p), mine=p===S.me;
+  const falta=7-(s.racha%7);
+  return `<div class="gift-card"><span class="gi">${I.gift}</span>
+    <div class="gt"><b class="num">${g.disp} gustito${g.disp===1?'':'s'} disponible${g.disp===1?'':'s'}</b>
+    <span class="hint num">${g.ganados?`${g.ganados} ganado${g.ganados===1?'':'s'} · ${g.usados} usado${g.usados===1?'':'s'} · `:''}${s.racha%7===0&&s.racha>0?'¡Acabas de ganar uno!':`faltan ${falta} día${falta===1?'':'s'} seguidos para el próximo`}</span></div>
+    ${mine&&g.disp>0&&!S.readOnly?`<button data-usar>Usé uno</button>`:''}</div>`;
+}
+function startNote(){
+  const c=curDay();
+  if(c<1) return `<div class="card"><h3>${c===0?'¡Empieza mañana!':'Empieza pronto'}</h3><p class="hint">El día 1 es el ${esc(nice(cfg().start))}. Ese día toca pesarse.</p></div>`;
+  const N=daysFor(S.me);
+  if(c>N) return `<div class="card"><h3>¡Terminaste tu reto!</h3><p class="hint">Completaste tus ${N} días. No olvides anotar tu pesaje final.</p></div>`;
+  return '';
+}
+function viewCamino(){
+  const ot=other(S.me);
+  return header()+startNote()+statsBlock(S.me)+
+    `<p class="hint">Tu camino. Cada nivel se pone en ✓ o ✗ cuando ${P[ot]} marca tu día. Si fallas un día, se suma un día extra al final. Con 7 días seguidos cumplidos ganas un gustito.</p>`+
+    levelMap(S.me)+legend();
+}
+function legend(){return `<div class="legend"><span><i style="background:var(--ok)"></i>Cumplido</span><span><i style="background:var(--no)"></i>No cumplido</span><span><i style="border:2px dashed var(--lock)"></i>Falta marcar</span><span><i style="background:var(--lock)"></i>Bloqueado</span><span><i style="background:var(--gift)"></i>Gustito</span></div>`}
+function judgeCard(){
+  const ot=other(S.me), c=cfg(), last=lastJudgeable(ot), N=daysFor(ot);
+  if(last<1) return `<div class="card judge"><h2>Marcar a ${P[ot]}</h2><p class="hint">Podrás marcar el día 1 desde el ${esc(nice(c.start))}.</p></div>`;
+  let n=S.judgeDay; if(!n||n>last) n=last; if(n<1) n=1; S.judgeDay=n;
+  const m=mark(ot,n), st=m?m.status:'';
+  const pend=pendientes(ot).filter(x=>x!==n);
+  return `<div class="card judge">
+    <h2>Marcar a ${P[ot]}</h2>
+    <div class="daynav"><button data-jnav="-1" ${n>1?'':'disabled'} aria-label="Día anterior">‹</button>
+      <div class="t"><span class="label num">Día ${n}${n===curDay()?' · hoy':''}</span><b>${esc(nice(dateOf(n)))}</b></div>
+      <button data-jnav="1" ${n<last?'':'disabled'} aria-label="Día siguiente">›</button></div>
+    ${c.reglas.length?`<div><div class="label">¿Cumplió todo?</div><ul class="rules">${c.reglas.map(r=>`<li>${esc(r)}</li>`).join('')}</ul></div>`:''}
+    ${n===1||n===N?`<p class="hint">${I.scale.replace('<svg','<svg width="16" height="16" style="vertical-align:-3px"')} Hoy toca pesarse: anótenlo en Pesaje.</p>`:''}
+    <div class="verdict">
+      <button class="yes" data-verdict="ok" aria-pressed="${st==='ok'}" ${S.readOnly?'disabled':''}>${I.check}Cumplió</button>
+      <button class="no" data-verdict="no" aria-pressed="${st==='no'}" ${S.readOnly?'disabled':''}>${I.x}No cumplió</button>
+    </div>
+    <div class="f"><label class="label" for="nota">Comentario (opcional)</label>
+      <textarea id="nota" maxlength="200" placeholder="Ej: ¡Bien ahí con el gym!" ${S.readOnly?'disabled':''}>${esc(m&&m.nota||'')}</textarea></div>
+    ${pend.length?`<div><div class="label">Te falta marcar</div><div class="pend">${pend.map(x=>`<button data-jgo="${x}">Día ${x}</button>`).join('')}</div></div>`:''}
+  </div>`;
+}
+function viewOtro(){
+  const ot=other(S.me);
+  return header()+judgeCard()+
+    `<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><h2 style="color:var(--ot)">Camino de ${P[ot]}</h2></div>`+
+    `<div style="--me:var(--ot);--me-soft:var(--ot-soft);display:flex;flex-direction:column;gap:16px">${statsBlock(ot)}${levelMap(ot)}</div>`+legend();
+}
+function viewPesaje(){
+  const c=cfg();
+  const col=p=>{
+    const w=S.pesos[p]||{}; const mine=p===S.me&&!S.readOnly;
+    const d=(w.d1!=null&&w.d30!=null&&w.d1!==''&&w.d30!=='')?Math.round((Number(w.d30)-Number(w.d1))*10)/10:null;
+    const field=(k,lab)=>mine
+      ?`<div class="f"><label for="w-${k}">${lab}</label><input id="w-${k}" data-w="${k}" type="number" inputmode="decimal" step="0.1" min="20" max="300" placeholder="kg" value="${w[k]??''}"></div>`
+      :`<div class="f"><label>${lab}</label><span class="ro num">${w[k]!=null&&w[k]!==''?esc(w[k])+' kg':'—'}</span></div>`;
+    return `<div class="wcol ${p}"><h3 class="${p}">${P[p]}</h3>
+      ${field('d1','Día 1 · '+nice(c.start).split(' ').slice(1).join(' '))}
+      ${field('d30','Día final ('+daysFor(p)+') · '+nice(dateOf(daysFor(p))).split(' ').slice(1).join(' '))}
+      <div><label>Diferencia</label><div class="diff num ${d==null?'':d<0?'down':d>0?'up':''}">${d==null?'—':(d>0?'+':'')+d+' kg'}</div></div></div>`;
+  };
+  return header()+`<div class="card"><h2>Pesaje</h2><p class="hint">Se pesan el día 1 y el último día de su reto (día ${c.days} más los días extra que tengan), en ayunas y con la misma balanza. Cada uno anota su peso; el otro lo ve.</p></div>
+    <div class="wgrid">${col('hannah')}${col('carlo')}</div>`;
+}
+function viewAjustes(){
+  const c=cfg();
+  return header()+`<form id="cfgform" class="card">
+    <h2>Ajustes del reto</h2>
+    <div class="row2">
+      <div class="f"><label class="label" for="start">Día 1</label><input id="start" type="date" value="${esc(c.start)}"></div>
+      <div class="f"><label class="label" for="days">Días base</label><input id="days" type="number" min="1" max="120" inputmode="numeric" value="${c.days}"></div>
+    </div>
+    <div class="f"><label class="label" for="reglas">Reglas del día (una por línea)</label><textarea id="reglas" style="min-height:130px">${esc(c.reglas.join('\n'))}</textarea>
+      <p class="hint">Se le muestran a quien marca el día del otro.</p></div>
+    <div class="card" style="background:var(--bg);border:0"><b>Reglas del juego</b>
+      <p class="hint">Cada día no cumplido suma 1 día extra a tu reto. 7 días seguidos cumplidos = 1 gustito pequeño.</p></div>
+    <button class="primary" type="submit" ${S.readOnly?'disabled':''}>Guardar</button>
+  </form>`;
+}
+function viewChoose(){
+  return `<div class="choose"><div class="label">Reto 30 días</div><h1>¿Quién eres?</h1>
+    <button class="big" style="background:var(--hannah)" data-pick="hannah">Hannah</button>
+    <button class="big" style="background:var(--carlo)" data-pick="carlo">Carlo</button>
+    <p class="hint">Cada uno entra a su página. Puedes guardar el enlace de la tuya.</p></div>`;
+}
+
+const VIEWS=()=>[['camino','Mi camino',I.map],['otro',P[other(S.me)],I.heart],['pesaje','Pesaje',I.scale],['ajustes','Ajustes',I.gear]];
+function renderTabs(){
+  const nav=document.getElementById('tabsnav'); nav.hidden=!S.me;
+  if(!S.me) return;
+  const np=pendientes(other(S.me)).length;
+  document.getElementById('tabs').innerHTML=VIEWS().map(([k,l,ic])=>`<button data-view="${k}" ${S.view===k?'aria-current="page"':''}><span class="dotn">${ic}${k==='otro'&&np?`<b>${np}</b>`:''}</span>${l}</button>`).join('');
+}
+function render(force){
+  document.body.className=S.me?'p-'+S.me:'';
+  const a=document.activeElement;
+  if(!force && a && app.contains(a) && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)){renderTabs();return}
+  if(!S.me){app.innerHTML=viewChoose();renderTabs();return}
+  app.innerHTML=({camino:viewCamino,otro:viewOtro,pesaje:viewPesaje,ajustes:viewAjustes})[S.view]();
+  renderTabs();
+  if(S.view==='camino'&&!S.scrolled&&S.loaded){S.scrolled=true;
+    const el=app.querySelector('.lvl.hoy')||null; if(el&&curDay()>3) el.scrollIntoView({block:'center'});}
+}
+
+/* ---------- detalle de nivel ---------- */
+function openSheet(p,n){
+  const st=status(p,n), m=mark(p,n), ot=other(p);
+  const by=m&&m.by?P[m.by]:P[ot];
+  const info={ok:['var(--ok)',I.check,'Cumplido'],no:['var(--no)',I.x,'No cumplido'],hoy:['var(--me)',I.map,'Día en curso'],espera:['var(--lock)','?','Falta que '+P[ot]+' lo marque'],lock:['var(--lock)',I.lock,'Todavía no llega']}[st];
+  const canJudge=p!==S.me && n<=lastJudgeable(p);
+  document.getElementById('sheet').innerHTML=`<div class="sheet-bg" data-close><div class="sheet" role="dialog" aria-modal="true" aria-label="Día ${n}">
+    <div class="label">${P[p]} · Día ${n}</div><h2>${esc(nice(dateOf(n)))}</h2>
+    <div class="big-st"><i style="background:${info[0]}">${info[1]}</i>${info[2]}</div>
+    ${m?`<p class="hint">Marcado por ${by}</p>`:''}
+    ${m&&m.nota?`<div class="quote">“${esc(m.nota)}”</div>`:''}
+    ${n===1||n===daysFor(p)?`<p class="hint">Día de pesaje.</p>`:''}${gustitoDays(p).includes(n)?`<p class="hint">¡7 días seguidos! Aquí se ganó un gustito.</p>`:''}
+    ${canJudge?`<button class="primary" data-jgo="${n}">Marcar este día</button>`:''}
+    <button class="close" data-close>Cerrar</button></div></div>`;
+}
+function closeSheet(){document.getElementById('sheet').innerHTML=''}
+document.getElementById('sheet').addEventListener('click',e=>{
+  const j=e.target.closest('[data-jgo]'); if(j){S.judgeDay=Number(j.dataset.jgo);S.view='otro';closeSheet();render(true);scrollTo(0,0);return}
+  if(e.target.matches('[data-close]')) closeSheet();
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSheet()});
+
+/* ---------- escritura ---------- */
+let toastT;
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>el.hidden=true,1800)}
+const queues={};
+function write(path,data,delay){
+  if(!S.db){toast('Sin conexión: no se guardó');return}
+  const q=queues[path]||(queues[path]={pending:null,running:false,timer:null});
+  q.pending=data; clearTimeout(q.timer);
+  q.timer=setTimeout(async()=>{
+    if(q.running) return; q.running=true;
+    while(q.pending){const d=q.pending;q.pending=null;
+      try{await S.db.doc(path).set(d)}catch(e){
+        await new Promise(r=>setTimeout(r,800+Math.random()*700));
+        try{await S.db.doc(path).set(d)}catch(e2){toast('No se pudo guardar. Revisa tu conexión.')}
+      }}
+    q.running=false;
+  },delay??250);
+}
+function saveMark(patch){
+  const ot=other(S.me), n=S.judgeDay, k=dateOf(n)+'_'+ot;
+  const cur=Object.assign({status:'',nota:''},S.marcas[k]||{},patch,{by:S.me,dia:n,quien:ot});
+  S.marcas[k]=cur; write('marcas/'+k,cur,patch.nota!==undefined?700:200);
+}
+
+app.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.pick){S.me=b.dataset.pick;lsSet('reto.me',S.me);location.hash=S.me;S.view='camino';S.scrolled=false;render(true);return}
+  if(b.hasAttribute('data-switch')){S.me=null;try{history.replaceState(null,'',location.pathname+location.search)}catch(e){location.hash=''}lsSet('reto.me','');render(true);return}
+  if(b.dataset.lvl){openSheet(b.dataset.who,Number(b.dataset.lvl));return}
+  if(b.dataset.jnav){S.judgeDay+=Number(b.dataset.jnav);render(true);return}
+  if(b.dataset.jgo){S.judgeDay=Number(b.dataset.jgo);render(true);return}
+  if(b.hasAttribute('data-usar')&&!S.readOnly){
+    const g=gustitos(S.me); if(g.disp<1) return;
+    const d={usados:g.usados+1}; S.gustos[S.me]=d; write('gustos/'+S.me,d,0); render(true); toast('¡Disfruta tu gustito!'); return;
+  }
+  if(b.dataset.verdict&&!S.readOnly){
+    const cur=(mark(other(S.me),S.judgeDay)||{}).status;
+    const v=cur===b.dataset.verdict?'':b.dataset.verdict;
+    saveMark({status:v}); render(true);
+    if(v==='ok') toast('¡Día '+S.judgeDay+' de '+P[other(S.me)]+' cumplido!');
+    else if(v==='no') toast('Día '+S.judgeDay+' marcado como no cumplido');
+    return;
+  }
+});
+app.addEventListener('input',e=>{
+  if(S.readOnly) return;
+  if(e.target.id==='nota'){saveMark({nota:e.target.value.slice(0,200)});return}
+  if(e.target.dataset.w){
+    const w=Object.assign({},S.pesos[S.me]||{}); const v=e.target.value;
+    w[e.target.dataset.w]=v===''?null:Math.round(Number(v)*10)/10;
+    S.pesos[S.me]=w; write('pesos/'+S.me,w,800);
+  }
+});
+app.addEventListener('change',e=>{if(e.target.dataset.w) render(true)});
+app.addEventListener('submit',e=>{
+  if(e.target.id!=='cfgform') return; e.preventDefault();
+  const g=id=>document.getElementById(id).value;
+  if(!g('start')){toast('Elige la fecha del día 1');return}
+  const conf={start:g('start'),days:Math.max(1,Math.min(120,Number(g('days'))||30)),
+    reglas:g('reglas').split('\n').map(s=>s.trim()).filter(Boolean),
+  };
+  S.config=conf; document.activeElement&&document.activeElement.blur();
+  write('reto/config',conf,0); toast('Guardado'); render(true);
+});
+document.getElementById('tabs').addEventListener('click',e=>{
+  const b=e.target.closest('button[data-view]'); if(!b) return;
+  S.view=b.dataset.view; if(S.view==='otro') S.judgeDay=null; if(S.view==='camino') S.scrolled=false;
+  render(true); scrollTo(0,0);
+});
+/* ---------- guardar en Google Sheets (vía Apps Script) ---------- */
+function makeSnap(store){
+  const meta={fromCache:false,hasPendingWrites:false};
+  const doc=p=>{const d=store()[p];return {id:p.split('/').pop(),exists:!!d,data:()=>d,metadata:meta}};
+  const col=c=>{const docs=Object.keys(store()).filter(p=>p.split('/')[0]===c).map(doc);return {docs,size:docs.length,empty:!docs.length,metadata:meta}};
+  return {doc,col};
+}
+function sheetDB(url){
+  let store={}, loaded=false, lastWrite=0, writing=0; const subs=[];
+  const snap=makeSnap(()=>store);
+  function notify(){if(loaded)subs.forEach(f=>f())}
+  async function pull(){
+    if(writing) return;
+    const started=Date.now();
+    try{
+      const r=await fetch(url+'?action=all&t='+started);
+      const j=await r.json(); if(!j.ok) throw new Error(j.error||'error');
+      if(started<lastWrite||writing) return;
+      store=j.store||{}; loaded=true; S.offline=false; notify();
+    }catch(e){S.offline=true; if(loaded) render();}
+  }
+  setInterval(()=>{if(!document.hidden)pull()},20000);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)pull()});
+  pull();
+  return {
+    doc(path){return {
+      async set(d){
+        store[path]=JSON.parse(JSON.stringify(d)); writing++;
+        try{
+          const [col,id]=path.split('/');
+          const r=await fetch(url,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify({col,id,data:d})});
+          const j=await r.json(); if(!j.ok) throw {code:'server',message:j.error};
+        }finally{writing--; lastWrite=Date.now();}
+      },
+      onSnapshot(cb){const f=()=>cb(snap.doc(path));subs.push(f);if(loaded)setTimeout(f,0);return ()=>{}}
+    }},
+    collection(c){return {onSnapshot(cb){const f=()=>cb(snap.col(c));subs.push(f);if(loaded)setTimeout(f,0);return ()=>{}}}}
+  };
+}
+/* modo de prueba: guarda solo en este aparato */
+function localDB(){
+  const KEY='reto.localdb'; let store={}; try{store=JSON.parse(localStorage.getItem(KEY)||'{}')}catch(e){}
+  const subs=[]; const snap=makeSnap(()=>store);
+  return {
+    doc(path){return {
+      set(d){store[path]=JSON.parse(JSON.stringify(d));try{localStorage.setItem(KEY,JSON.stringify(store))}catch(e){}return Promise.resolve()},
+      onSnapshot(cb){const f=()=>cb(snap.doc(path));subs.push(f);setTimeout(f,0);return ()=>{}}
+    }},
+    collection(c){return {onSnapshot(cb){const f=()=>cb(snap.col(c));subs.push(f);setTimeout(f,0);return ()=>{}}}}
+  };
+}
+function readHash(){const h=location.hash.replace('#','').toLowerCase(); return P[h]?h:null}
+window.addEventListener('hashchange',()=>{const h=readHash(); if(h&&h!==S.me){S.me=h;lsSet('reto.me',h);S.view='camino';render(true)}});
+
+/* ---------- conexión ---------- */
+async function boot(){
+  S.me=readHash()||(P[lsGet('reto.me')]?lsGet('reto.me'):null);
+  if(S.me&&!readHash()){try{history.replaceState(null,'','#'+S.me)}catch(e){}}
+  render(true);
+  const configured=/^https:\/\/script\.google\.com\//.test(SCRIPT_URL);
+  S.db=configured?sheetDB(SCRIPT_URL):localDB();
+  S.localOnly=!configured;
+  const db=S.db;
+  const timer=setTimeout(()=>{if(!S.loaded){S.loaded=true;S.offline=true;render(true)}},25000);
+  const onErr=()=>{S.offline=true;render()};
+  db.doc('reto/config').onSnapshot(snap=>{
+    S.config=snap.exists?snap.data():null;
+    if(!snap.metadata.fromCache){clearTimeout(timer);S.offline=false;S.loaded=true}
+    render();
+  },onErr);
+  const sub=(col)=>db.collection(col).onSnapshot(snap=>{
+    const m={}; snap.docs.forEach(d=>{m[d.id]=d.data()});
+    Object.keys(queues).forEach(p=>{const [c,id]=p.split('/'); if(c===col&&(queues[p].pending||queues[p].running)&&S[col][id]) m[id]=S[col][id]});
+    S[col]=m; render();
+  },onErr);
+  sub('marcas'); sub('pesos'); sub('gustos');
+}
+boot();
+})();
+</script>
+</body>
+</html>
